@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+
+const projects = (await getCollection("projects", ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+
+<Base title="Work" description="Open-source projects: what each does, the decisions behind it and the numbers measured.">
+  <p class="eyebrow">Work</p>
+  <h1>Projects</h1>
+  <p class="lede">
+    Each page covers the problem, two design decisions with the option I rejected, the numbers I
+    measured and how, and what the project doesn't do yet.
+  </p>
+  {
+    projects.length > 0 ? (
+      projects.map((p) => <ProjectCard project={p} />)
+    ) : (
+      <p class="muted">The first project pages arrive in December 2026.</p>
+    )
+  }
+</Base>

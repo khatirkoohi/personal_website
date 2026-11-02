@@ -1,0 +1,128 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { site } from "../site";
+
+const projects = (await getCollection("projects", ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.published.valueOf() - a.data.published.valueOf(),
+);
+
+// Three "start here" links: the first published projects, topped up with the CV and email.
+const startHere = [
+  ...projects.map((p) => ({ href: `/projects/${p.id}/`, label: p.data.title, note: p.data.summary })),
+  { href: "/cv/", label: "CV", note: "Experience, projects and skills on two pages." },
+  { href: `mailto:${site.email}`, label: "Email me", note: site.email },
+].slice(0, 3);
+---
+
+<Base>
+  <section class="hero">
+    <p class="eyebrow">{site.title}</p>
+    <h1>{site.name}</h1>
+    <p class="lede">Senior backend engineer. {site.sentence}</p>
+    <p class="stack mono">{site.stack}</p>
+  </section>
+
+  <section aria-labelledby="start">
+    <h2 id="start">Start here</h2>
+    <ol class="start">
+      {
+        startHere.map((item, i) => (
+          <li>
+            <span class="num mono">0{i + 1}</span>
+            <span>
+              <a href={item.href}>{item.label}</a>
+              <span class="note">{item.note}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  {
+    projects.length > 0 && (
+      <section aria-labelledby="work">
+        <h2 id="work">Work</h2>
+        {projects.map((p) => <ProjectCard project={p} />)}
+      </section>
+    )
+  }
+
+  {
+    posts.length > 0 && (
+      <section aria-labelledby="writing">
+        <h2 id="writing">Writing</h2>
+        <ul class="posts">
+          {posts.slice(0, 3).map((p) => (
+            <li>
+              <a href={`/writing/${p.id}/`}>{p.data.title}</a>
+              <time class="mono muted" datetime={p.data.published.toISOString()}>
+                {p.data.published.toISOString().slice(0, 10)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .hero {
+    padding-bottom: 1rem;
+  }
+  .stack {
+    color: var(--ink-3);
+    font-size: 0.85rem;
+  }
+  .start {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: var(--measure);
+  }
+  .start li {
+    display: flex;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .start li:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+  .num {
+    color: var(--ink-3);
+    font-size: 0.8rem;
+    padding-top: 0.2rem;
+  }
+  .start a {
+    font-weight: 600;
+  }
+  .note {
+    display: block;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+  }
+  .posts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: var(--measure);
+  }
+  .posts li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .posts time {
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+</style>

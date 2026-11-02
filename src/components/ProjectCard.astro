@@ -1,0 +1,49 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { repoFacts } from "../lib/github";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+}
+
+const { project } = Astro.props;
+const { title, summary, pillar, stack, status, repo } = project.data;
+const facts = await repoFacts(repo);
+---
+
+<article class="card">
+  <p class="eyebrow">{pillar}{status === "coming" && " · repo coming"}</p>
+  <h3><a href={`/projects/${project.id}/`}>{title}</a></h3>
+  <p>{summary}</p>
+  <p class="meta mono">
+    {stack.join(" · ")}
+    {facts && <span> · ★ {facts.stars}{facts.release && ` · ${facts.release}`}</span>}
+  </p>
+</article>
+
+<style>
+  .card {
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.3rem;
+  }
+  h3 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  h3 a:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+  }
+  p {
+    margin: 0 0 0.4rem;
+    max-width: var(--measure);
+  }
+  .meta {
+    color: var(--ink-3);
+    font-size: 0.8rem;
+  }
+</style>

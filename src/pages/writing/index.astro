@@ -1,0 +1,55 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.published.valueOf() - a.data.published.valueOf(),
+);
+---
+
+<Base title="Writing" description="Technical articles about building and measuring the projects on this site.">
+  <p class="eyebrow">Writing</p>
+  <h1>Articles</h1>
+  <p class="lede">Notes on building, testing and measuring the projects on this site. <a href="/rss.xml">RSS</a>.</p>
+  {
+    posts.length > 0 ? (
+      <ul class="posts">
+        {posts.map((p) => (
+          <li>
+            <a href={`/writing/${p.id}/`}>{p.data.title}</a>
+            <p class="muted">{p.data.description}</p>
+            <time class="mono muted" datetime={p.data.published.toISOString()}>
+              {p.data.published.toISOString().slice(0, 10)}
+            </time>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="muted">The first article is planned for spring 2027.</p>
+    )
+  }
+</Base>
+
+<style>
+  .posts {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 0;
+    max-width: var(--measure);
+  }
+  .posts li {
+    padding: 1rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .posts a {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .posts p {
+    margin: 0.25rem 0;
+  }
+  time {
+    font-size: 0.8rem;
+  }
+</style>

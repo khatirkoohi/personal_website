@@ -1,0 +1,195 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { repoFacts } from "../../lib/github";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects", ({ data }) => !data.draft);
+  return projects.map((project) => ({ params: { id: project.id }, props: { project } }));
+}
+
+interface Props {
+  project: CollectionEntry<"projects">;
+}
+
+const { project } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+const facts = await repoFacts(d.repo);
+const repoUrl = facts?.url ?? (d.repo ? `https://github.com/${d.repo}` : undefined);
+---
+
+<Base title={d.title} description={d.summary} ogType="article">
+  <article>
+    <header class="head">
+      <p class="eyebrow">{d.pillar}</p>
+      <h1>{d.title}</h1>
+      <p class="lede">{d.summary}</p>
+      <p class="stack mono">{d.stack.join(" · ")}</p>
+
+      <div class="actions">
+        {
+          d.status === "public" && repoUrl ? (
+            <>
+              <a class="button" href={repoUrl}>Try it on GitHub</a>
+              <a class="button ghost" href={`${repoUrl}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`}>
+                Help build it
+                {facts && facts.goodFirstIssues > 0 && ` (${facts.goodFirstIssues} good first issues)`}
+              </a>
+            </>
+          ) : (
+            <span class="muted">The repository opens soon. This page describes the design.</span>
+          )
+        }
+      </div>
+
+      {
+        facts && (
+          <dl class="facts mono">
+            <div><dt>Stars</dt><dd>{facts.stars}</dd></div>
+            <div><dt>Release</dt><dd>{facts.release ?? "none yet"}</dd></div>
+            <div><dt>Good first issues</dt><dd>{facts.goodFirstIssues}</dd></div>
+          </dl>
+        )
+      }
+    </header>
+
+    {d.media && <img class="media" src={d.media} alt={`${d.title} in use`} loading="lazy" />}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {
+      d.diagram && (
+        <figure class="diagram">
+          <img src={d.diagram} alt={`Architecture of ${d.title}`} loading="lazy" />
+        </figure>
+      )
+    }
+
+    {
+      d.decisions.length > 0 && (
+        <section>
+          <h2>Two decisions</h2>
+          <ol class="decisions">
+            {d.decisions.map((x) => (
+              <li>
+                <p><strong>Chose:</strong> {x.chose}</p>
+                <p><strong>Rejected:</strong> {x.rejected}</p>
+                <p class="why">{x.why}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      d.numbers.length > 0 && (
+        <section>
+          <h2>Measured</h2>
+          <table>
+            <thead>
+              <tr><th scope="col">Number</th><th scope="col">What</th><th scope="col">How it was measured</th></tr>
+            </thead>
+            <tbody>
+              {d.numbers.map((n) => (
+                <tr>
+                  <td class="mono value">{n.value}</td>
+                  <td>{n.label}</td>
+                  <td class="muted">{n.method}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )
+    }
+
+    {
+      d.limits.length > 0 && (
+        <section class="measure">
+          <h2>Limits</h2>
+          <ul>{d.limits.map((l) => <li>{l}</li>)}</ul>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .head {
+    margin-bottom: 2rem;
+  }
+  .stack {
+    color: var(--ink-3);
+    font-size: 0.85rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+  }
+  .button {
+    display: inline-block;
+    padding: 0.55rem 0.95rem;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--paper);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+  }
+  .button.ghost {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    margin: 0;
+    font-size: 0.85rem;
+  }
+  .facts div {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .facts dt {
+    color: var(--ink-3);
+  }
+  .facts dd {
+    margin: 0;
+  }
+  .media,
+  .diagram img {
+    display: block;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--surface);
+    margin: 1.5rem 0 2rem;
+  }
+  .diagram {
+    margin: 0;
+  }
+  .decisions {
+    padding-left: 1.25rem;
+    max-width: var(--measure);
+  }
+  .decisions li {
+    margin-bottom: 1.25rem;
+  }
+  .decisions p {
+    margin: 0 0 0.25rem;
+  }
+  .why {
+    color: var(--ink-2);
+  }
+  .value {
+    white-space: nowrap;
+    font-weight: 500;
+  }
+</style>

@@ -1,0 +1,146 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { site } from "../site";
+import { summary, experience, skills, education, languages } from "../cv";
+
+// Projects appear on the CV only once their repos are public.
+const projects = (
+  await getCollection("projects", ({ data }) => !data.draft && data.status === "public")
+).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base title="CV" description={`CV of ${site.name}, ${site.title}.`}>
+  <header class="head">
+    <p class="eyebrow">CV</p>
+    <h1>{site.name}</h1>
+    <p class="role">{site.title}</p>
+    <p class="contact mono">
+      <a href={`mailto:${site.email}`}>{site.email}</a>
+      {site.github && <> · <a href={site.github}>GitHub</a></>}
+      {site.linkedin && <> · <a href={site.linkedin}>LinkedIn</a></>}
+    </p>
+    {site.cvPdf && <p><a href={site.cvPdf} download>Download the PDF</a></p>}
+  </header>
+
+  <section class="measure">
+    <h2>Summary</h2>
+    <p>{summary}</p>
+  </section>
+
+  <section>
+    <h2>Experience</h2>
+    {
+      experience.map((r) => (
+        <div class="role-block">
+          <div class="role-head">
+            <h3>{r.org}</h3>
+            <span class="dates mono">{r.dates}</span>
+          </div>
+          <p class="title">{r.title}</p>
+          <ul class="measure">{r.bullets.map((b) => <li>{b}</li>)}</ul>
+        </div>
+      ))
+    }
+  </section>
+
+  {
+    projects.length > 0 && (
+      <section>
+        <h2>Projects</h2>
+        <ul class="measure">
+          {projects.map((p) => (
+            <li>
+              <a href={`/projects/${p.id}/`}><strong>{p.data.title}</strong></a>: {p.data.summary}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section>
+    <h2>Skills</h2>
+    <dl class="skills">
+      {
+        skills.map(([k, v]) => (
+          <div>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="measure">
+    <h2>Education</h2>
+    <ul>{education.map((e) => <li>{e}</li>)}</ul>
+    <h2>Languages</h2>
+    <p>{languages}</p>
+  </section>
+</Base>
+
+<style>
+  .role {
+    font-size: 1.15rem;
+    color: var(--ink-2);
+    margin: 0 0 0.5rem;
+  }
+  .contact {
+    font-size: 0.85rem;
+  }
+  .role-block {
+    margin-bottom: 1.75rem;
+  }
+  .role-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    max-width: var(--measure);
+  }
+  .role-head h3 {
+    margin: 0;
+  }
+  .dates {
+    color: var(--ink-3);
+    font-size: 0.8rem;
+  }
+  .title {
+    color: var(--ink-2);
+    margin: 0.15rem 0 0.5rem;
+  }
+  ul {
+    padding-left: 1.25rem;
+  }
+  li {
+    margin: 0.3rem 0;
+  }
+  .skills {
+    margin: 0;
+    max-width: var(--measure);
+  }
+  .skills div {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .skills dt {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .skills dd {
+    margin: 0;
+  }
+  @media print {
+    :global(.site-header),
+    :global(.site-footer) {
+      display: none;
+    }
+  }
+</style>

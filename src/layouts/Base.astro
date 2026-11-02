@@ -1,0 +1,141 @@
+---
+import "../styles/global.css";
+import { site, nav } from "../site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogType?: "website" | "article";
+}
+
+const { title, description = site.sentence, ogType = "website" } = Astro.props;
+const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · ${site.title}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const current = Astro.url.pathname.replace(/\/$/, "") || "/";
+const isCurrent = (href: string) => {
+  const h = href.replace(/\/$/, "") || "/";
+  return h === "/" ? current === "/" : current === h || current.startsWith(`${h}/`);
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${site.name}: Writing`} href="/rss.xml" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={site.name} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121416" media="(prefers-color-scheme: dark)" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="/">{site.name}</a>
+        <nav aria-label="Main">
+          <ul>
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="wrap">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap foot">
+        <span>© {new Date().getFullYear()} {site.name}</span>
+        <span class="links">
+          <a href={`mailto:${site.email}`}>Email</a>
+          {site.github && <a href={site.github}>GitHub</a>}
+          {site.linkedin && <a href={site.linkedin}>LinkedIn</a>}
+          <a href="/rss.xml">RSS</a>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--rule);
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    padding-top: 1.1rem;
+    padding-bottom: 1.1rem;
+  }
+  .brand {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  nav a {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  nav a:hover,
+  nav a[aria-current="page"] {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+  main {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+    flex: 1 0 auto;
+  }
+  .site-footer {
+    border-top: 1px solid var(--rule);
+  }
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--ink-3);
+  }
+  .links {
+    display: flex;
+    gap: 1.25rem;
+  }
+</style>
