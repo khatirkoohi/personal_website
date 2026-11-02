@@ -11,10 +11,10 @@ const posts = (await getCollection("writing", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.published.valueOf() - a.data.published.valueOf(),
 );
 
-// Three "start here" links: the first published projects, topped up with the CV and email.
+// Three "start here" links: the first published projects, topped up with email.
+// CV is hidden for now: rename pages/_cv.astro back to cv.astro and restore its links here and in site.ts nav.
 const startHere = [
   ...projects.map((p) => ({ href: `/projects/${p.id}/`, label: p.data.title, note: p.data.summary })),
-  { href: "/cv/", label: "CV", note: "Experience, projects and skills on two pages." },
   { href: `mailto:${site.email}`, label: "Email me", note: site.email },
 ].slice(0, 3);
 ---

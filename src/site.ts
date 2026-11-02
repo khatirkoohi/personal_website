@@ -22,6 +22,5 @@ export const nav = [
   { href: "/", label: "Home" },
   { href: "/projects/", label: "Work" },
   { href: "/writing/", label: "Writing" },
-  { href: "/cv/", label: "CV" },
   { href: "/contact/", label: "Contact" },
 ];
